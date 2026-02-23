@@ -53,23 +53,22 @@ MB_SERIAL=$(inxi -M -c 0 | grep "Mobo:" | sed -E 's/.*Mobo: (.*) model: (.*) ser
 GPU_MODEL=$(inxi -G -c 0 | grep "Device-1:" | cut -d: -f2 | xargs)
 
 # --- STORAGE ---
+# Check le stockage total
 TOTAL_STORAGE=$(inxi -D -c 0 | grep -o 'Total: [0-9.]* [A-Za-z]*' | sed 's/Total: //')
-mapfile -t ALL_DISKS < <(lsblk -d -n -o NAME,TYPE | awk '$2=="disk" {print $1}')
 
-# Initialisation d'un tableau JSON vide
-TOTAL_STORAGE=$(inxi -D -c 0 | grep -o 'Total: [0-9.]* [A-Za-z]*' | sed 's/Total: //')
+# Stockage des partitions
+# Initialisation d'un tableau vide
 mapfile -t ALL_DISKS < <(lsblk -d -n -o NAME,TYPE | awk '$2=="disk" {print $1}')
 
 # Initialisation d'un tableau JSON vide pour stocker les disques
 DISKS_JSON="[]"
 
-for disk in "${ALalfred.runL_DISKS[@]}"; do
-    # On récupère les partitions du disque courant. 
-    # Ajout de MOUNTPOINT pour récupérer "/", "/boot", etc.
+for disk in "${ALL_DISKS[@]}"; do
+    # On récupère les partitions du disque courant.
     DISK_PARTS=$(lsblk -J -l -o TYPE,NAME,FSTYPE,SIZE,FSUSED "/dev/$disk" 2>/dev/null | \
         jq '[.blockdevices[]? | select(.type == "part") | {name: .name, fstype: (.fstype // "N/A"), size: (.size // "N/A"), used: (.fsused // "N/A")}]')
     
-    # Sécurité : si le disque n'a pas de partitions, on assigne un tableau vide
+    # Si le disque n'a pas de partitions, on mets un tableau vide
     if [ -z "$DISK_PARTS" ] || [ "$DISK_PARTS" == "null" ]; then
         DISK_PARTS="[]"
     fi
@@ -80,7 +79,7 @@ for disk in "${ALalfred.runL_DISKS[@]}"; do
         --argjson parts "$DISK_PARTS" \
         '{name: $name, partitions: $parts}')
     
-    # On ajoute cet objet disque au grand tableau DISKS_JSON
+    # On ajoute cet objet disque au tableau principal DISKS_JSON
     DISKS_JSON=$(echo "$DISKS_JSON" | jq --argjson new_disk "$DISK_OBJECTS" '. + [$new_disk]')
 done
 
