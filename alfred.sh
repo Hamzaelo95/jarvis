@@ -53,10 +53,36 @@ MB_SERIAL=$(inxi -M -c 0 | grep "Mobo:" | sed -E 's/.*Mobo: (.*) model: (.*) ser
 GPU_MODEL=$(inxi -G -c 0 | grep "Device-1:" | cut -d: -f2 | xargs)
 
 # --- STORAGE ---
-SIZES=$(lsblk -dnb | grep -v loop | grep -v boot | tr -s " " | cut -d \  -f4)
-TOTAL_STORAGE=0
-for SIZE in $SIZES; do TOTAL_STORAGE=$((TOTAL_STORAGE + SIZE)); done
-TOTAL_STORAGE=$(numfmt --to iec $TOTAL_STORAGE)
+TOTAL_STORAGE=$(inxi -D -c 0 | grep -o 'Total: [0-9.]* [A-Za-z]*' | sed 's/Total: //')
+mapfile -t ALL_DISKS < <(lsblk -d -n -o NAME,TYPE | awk '$2=="disk" {print $1}')
+
+# Initialisation d'un tableau JSON vide
+TOTAL_STORAGE=$(inxi -D -c 0 | grep -o 'Total: [0-9.]* [A-Za-z]*' | sed 's/Total: //')
+mapfile -t ALL_DISKS < <(lsblk -d -n -o NAME,TYPE | awk '$2=="disk" {print $1}')
+
+# Initialisation d'un tableau JSON vide pour stocker les disques
+DISKS_JSON="[]"
+
+for disk in "${ALalfred.runL_DISKS[@]}"; do
+    # On récupère les partitions du disque courant. 
+    # Ajout de MOUNTPOINT pour récupérer "/", "/boot", etc.
+    DISK_PARTS=$(lsblk -J -l -o TYPE,NAME,FSTYPE,SIZE,FSUSED "/dev/$disk" 2>/dev/null | \
+        jq '[.blockdevices[]? | select(.type == "part") | {name: .name, fstype: (.fstype // "N/A"), size: (.size // "N/A"), used: (.fsused // "N/A")}]')
+    
+    # Sécurité : si le disque n'a pas de partitions, on assigne un tableau vide
+    if [ -z "$DISK_PARTS" ] || [ "$DISK_PARTS" == "null" ]; then
+        DISK_PARTS="[]"
+    fi
+
+    # On crée l'objet parent "disque" qui contient son nom et son tableau de partitions
+    DISK_OBJECTS=$(jq -n \
+        --arg name "$disk" \
+        --argjson parts "$DISK_PARTS" \
+        '{name: $name, partitions: $parts}')
+    
+    # On ajoute cet objet disque au grand tableau DISKS_JSON
+    DISKS_JSON=$(echo "$DISKS_JSON" | jq --argjson new_disk "$DISK_OBJECTS" '. + [$new_disk]')
+done
 
 # --- SOFTWARE ---
 OS=$(lsb_release -d 2>/dev/null | cut -f2 || grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
@@ -77,6 +103,8 @@ json_pkg() {
         --arg cpu_frequency_min "$CPU_FREQUENCY_MIN" \
         --arg cpu_frequency_cur "$CPU_FREQUENCY_CUR" \
         --arg cpu_frequency_max "$CPU_FREQUENCY_MAX" \
+        --arg total_storage "$TOTAL_STORAGE" \
+        --argjson disks "$DISKS_JSON" \
         --arg gpu_model "$GPU_MODEL" \
         --arg ram_slots "$RAM_SLOTS" \
         --arg ram_total "$RAM_TOTAL" \
@@ -101,7 +129,8 @@ json_pkg() {
             gpu_model: $gpu_model,
             ram_slots: $ram_slots,
             ram_total: $ram_total,
-            total_storage: $total_storage
+            total_storage: $total_storage,
+            disks: $disks
         },
         SOFTWARE: {
             hostname: $hostname,
