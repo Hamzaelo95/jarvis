@@ -1,5 +1,5 @@
 # alfred
-the grabber companion, it sends computer informations in a json package then send it to the server (grabber), need the server to be listening for the response.
+Working on the v1 of alfred daemon in C
 
 ## build
 
