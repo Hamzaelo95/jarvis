@@ -71,3 +71,24 @@ void get_ram_metrics(SystemMetrics *metrics) {
         metrics->ram_usage_percent = 0;
     }
 }
+
+void get_cpu_temperature(SystemMetrics *metrics) {
+    // 1. On ouvre le fichier de la sonde thermique
+    FILE *file = fopen("/sys/class/thermal/thermal_zone0/temp", "r");
+    
+    metrics->cpu_temp_c = 0.0;
+
+    if (file == NULL) {
+        
+        return; 
+    }
+
+    long temp_millidegrees;
+    if (fscanf(file, "%ld", &temp_millidegrees) == 1) {
+       
+        metrics->cpu_temp_c = temp_millidegrees / 1000.0;
+    }
+
+    
+    fclose(file);
+}

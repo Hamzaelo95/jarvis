@@ -17,13 +17,16 @@ int main(int argc, char *argv[]) {
 
     printf("[ALFRED] Entrée dans la boucle de surveillance.\n\n");
     
-    while (true) {
+    while (true){
         get_ram_metrics(&my_metrics);
+        get_cpu_temperature(&my_metrics); 
         
-        printf("[ALFRED] RAM Utilisée : %ld MB / %ld MB (%d %%)\n", 
+       
+        printf("[ALFRED] RAM : %ld MB / %ld MB (%d %%) | Temp CPU : %.1f °C\n", 
                my_metrics.ram_used_kb / 1024, 
                my_metrics.ram_total_kb / 1024, 
-               my_metrics.ram_usage_percent);
+               my_metrics.ram_usage_percent,
+               my_metrics.cpu_temp_c); 
 
         sleep(SLEEP_INTERVAL);
     }
