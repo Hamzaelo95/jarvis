@@ -39,3 +39,35 @@ if (strncmp(line, "model name", 10) == 0) {
   
     fclose(file);
 }
+
+void get_ram_metrics(SystemMetrics *metrics) {
+    FILE *file = fopen("/proc/meminfo", "r");
+    char line[256];
+
+    metrics->ram_total_kb = 0;
+    metrics->ram_available_kb = 0;
+
+    if (file == NULL) {
+        printf("[ERREUR] Impossible de lire /proc/meminfo\n");
+        return;
+    }
+
+    while (fgets(line, sizeof(line), file)) {
+        if (strncmp(line, "MemTotal:", 9) == 0) {
+            sscanf(line, "MemTotal: %ld kB", &metrics->ram_total_kb);
+        }
+        if (strncmp(line, "MemAvailable:", 13) == 0) {
+            sscanf(line, "MemAvailable: %ld kB", &metrics->ram_available_kb);
+        }
+    }
+
+    fclose(file);
+
+    if (metrics->ram_total_kb > 0) {
+        metrics->ram_used_kb = metrics->ram_total_kb - metrics->ram_available_kb;
+        metrics->ram_usage_percent = (int)((metrics->ram_used_kb * 100.0) / metrics->ram_total_kb);
+    } else {
+        metrics->ram_used_kb = 0;
+        metrics->ram_usage_percent = 0;
+    }
+}
