@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
                my_metrics.ram_used_kb / 1024, my_metrics.ram_usage_percent,
                my_metrics.storage_used_gb, my_metrics.storage_total_gb, my_metrics.storage_usage_percent);
 
-        send_data_to_api(&my_cpu, &my_metrics, "localhost:8000", "CLE_API_BOXTEA");
+        send_data_to_api(&my_cpu, &my_metrics, "http://localhost:8000/endpoint", "AUCUN_TOKEN");
 
         sleep(SLEEP_INTERVAL);
     }
