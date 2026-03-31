@@ -12,10 +12,20 @@ typedef struct {
     long ram_used_kb;
     int ram_usage_percent;
     float cpu_temp_c;
+    int cpu_usage_percent; 
+    unsigned long long prev_idle;  
+    unsigned long long prev_total; 
+
+    long storage_total_gb;
+    long storage_used_gb;
+    int storage_usage_percent;
+
 } SystemMetrics;
 
 void get_cpu_info(CpuInfo *info);
 void get_ram_metrics(SystemMetrics *metrics);
-void get_cpu_temperature(SystemMetrics *metrics); 
+void get_cpu_temperature(SystemMetrics *metrics);
+void get_cpu_usage(SystemMetrics *metrics);
+void get_storage_metrics(SystemMetrics *metrics); 
 
 #endif

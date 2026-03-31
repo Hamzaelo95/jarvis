@@ -7,26 +7,32 @@
 #define SLEEP_INTERVAL 5
 
 int main(int argc, char *argv[]) {
-    printf("[ALFRED] Démarrage du Daemon Alfred Boxtea...\n");
+    printf("[JARVIS] Démarrage du Daemon Jarvis Boxtea...\n");
 
     CpuInfo my_cpu; 
     get_cpu_info(&my_cpu); 
-    printf("[ALFRED] ---> Modèle CPU : %s (%d cœurs)\n", my_cpu.model_name, my_cpu.cores);
+    printf("[JARVIS] ---> Modèle CPU : %s (%d cœurs)\n", my_cpu.model_name, my_cpu.cores);
 
-    SystemMetrics my_metrics;
+    SystemMetrics my_metrics = {0};
 
-    printf("[ALFRED] Entrée dans la boucle de surveillance.\n\n");
+    printf("[JARVIS] Entrée dans la boucle de surveillance.\n\n");
     
-    while (true){
-        get_ram_metrics(&my_metrics);
-        get_cpu_temperature(&my_metrics); 
-        
+    while (true) {
        
-        printf("[ALFRED] RAM : %ld MB / %ld MB (%d %%) | Temp CPU : %.1f °C\n", 
+        get_ram_metrics(&my_metrics);
+        get_cpu_temperature(&my_metrics);
+        get_cpu_usage(&my_metrics);
+        get_storage_metrics(&my_metrics);
+        
+     // B. Le Grand Affichage
+        printf("[JARVIS] CPU: %d%% (%.1f °C) | RAM: %ld MB (%d%%) | Disque: %ld GB / %ld GB (%d%%)\n", 
+               my_metrics.cpu_usage_percent,
+               my_metrics.cpu_temp_c, 
                my_metrics.ram_used_kb / 1024, 
-               my_metrics.ram_total_kb / 1024, 
                my_metrics.ram_usage_percent,
-               my_metrics.cpu_temp_c); 
+               my_metrics.storage_used_gb,
+               my_metrics.storage_total_gb,
+               my_metrics.storage_usage_percent);
 
         sleep(SLEEP_INTERVAL);
     }
