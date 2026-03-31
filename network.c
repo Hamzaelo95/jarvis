@@ -43,6 +43,7 @@ void send_data_to_api(CpuInfo *cpu, SystemMetrics *metrics, const char *target, 
         curl_easy_setopt(curl, CURLOPT_URL, target);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_string);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
 
         res = curl_easy_perform(curl);
 

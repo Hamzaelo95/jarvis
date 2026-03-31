@@ -32,7 +32,7 @@ if (strncmp(line, "model name", 10) == 0) {
             char *colon = strchr(line, ':');
             if (colon != NULL) {
               
-                sscanf(colon + 2, "%d", &info->cores);
+                ssscanf(colon + 2, "%127[^\n]", info->model_name);
             }
         }
     }
