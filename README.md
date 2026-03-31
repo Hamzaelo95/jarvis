@@ -1,22 +1,22 @@
-# alfred
-Working on the v1 of alfred daemon in C
+# Jarvis Daemon 
 
-## build
+A lightweight, native C daemon for real-time hardware monitoring. Designed to efficiently track system health and send metrics to a remote Django API.
 
-to use it, clone the git\
-`git clone https://github.com/buchtioof/alfred.git`
+This v1 replaces the old bash/makeself script with a highly optimized C executable interacting directly with the Linux kernel (`/proc` and `/sys`).
 
-then use this command\
-`makeself ./alfred alfred.run ./alfred.sh`
+## Features
 
-## usage
+* **CPU Monitoring:** Real-time usage (%) and model detection.
+* **Temperature:** CPU thermal zone monitoring (C°).
+* **RAM Usage:** Total, used, and dynamic percentage calculation.
+* **Storage:** Root disk (`/`) space tracking using `statvfs`.
+* **Network:** Automated JSON payload packaging and HTTP POST delivery via `libcurl`.
 
-run alfred with this command\
-`./alfred.run "add ip:port of your server without double quotes ofc"`
+## Dependencies
 
-## dependencies
-- inxi (lastest release)
-- jq (1.8.1 tested / arm64 and x86_64 supported, more later)
+To compile and run Jarvis, you need the standard C compiler and two external libraries for JSON and HTTP requests. 
 
-## credits
-thanks to [inxi](https://github.com/smxi/inxi) and [jq](https://github.com/jqlang/jq)
+Install them on Debian/Ubuntu using:
+```bash
+sudo apt update
+sudo apt install gcc libjson-c-dev libcurl4-openssl-dev
